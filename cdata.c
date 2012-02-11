@@ -18,25 +18,29 @@
 #define DEV_MAJOR	121
 #define DEV_NAME	"cdata"
 
-
+#define MSG(m...) printk(KERN_INFO "CDATA: " m "\n");
 
 static int cdata_open(struct inode *inode, struct file *filp)
 {
+	MSG("cdata_open");
 	return 0;
 }
 
 static int cdata_close(struct inode *inode, struct file *filp)
 {
+	MSG("cdata_close");
 	return 0;
 }
 
 static int cdata_read(struct file *filp, char *buffer, size_t size, loff_t *offset)
 {
+	MSG("cdata_read");
 	return 0;
 }
 
 static int cdata_write(struct file *filp, const char *buffer, size_t size, loff_t *offset)
 {
+	MSG("cdata_write");
 	return 0;
 }
 
