@@ -16,7 +16,7 @@
 #include <asm/uaccess.h>
 
 #define DEV_MAJOR	121
-#define DEV_NAME	"debug"
+#define DEV_NAME	"cdata"
 
 
 
