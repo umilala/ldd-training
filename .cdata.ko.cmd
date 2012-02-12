@@ -1,0 +1,1 @@
+cmd_/disk0/moko_20120211/20120211/ldd-training/cdata.ko := ld -r -m elf_x86_64 -T /usr/src/linux-headers-2.6.35-22-generic/scripts/module-common.lds --build-id -o /disk0/moko_20120211/20120211/ldd-training/cdata.ko /disk0/moko_20120211/20120211/ldd-training/cdata.o /disk0/moko_20120211/20120211/ldd-training/cdata.mod.o

@@ -65,6 +65,10 @@ static int cdata_write(struct file *filp, const char *buffer, size_t size, loff_
 	return 0;
 }
 
+static int cdata_ioctl(struct inode* inode, struct file* file, unsigned int cmd, unsigned long arg) {
+	return 0;
+}
+
 
 static struct file_operations cdata_fops = {
 	owner:		THIS_MODULE,	
@@ -72,6 +76,7 @@ static struct file_operations cdata_fops = {
 	release:	cdata_close,
 	write:		cdata_write,
 	read:		cdata_read,
+	ioctl:		cdata_ioctl,
 };
 
 int cdata_init_module(void)
