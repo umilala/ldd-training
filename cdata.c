@@ -20,8 +20,29 @@
 
 #define MSG(m...) printk(KERN_INFO "CDATA: " m "\n");
 
+
+/* TEST_MODE 
+ * 0: LOOP_ONLY
+ * 1: SCHEDULE
+ * 2: SCHEDULE_UNINTERRUPTIBLE
+ * 3:
+ */
+
+#define TEST_MODE o
+
+
 static int cdata_open(struct inode *inode, struct file *filp)
 {
+	int i;
+	/*for (i=0; i<500000; i++) {
+		//do nothing
+		//
+	}*/
+
+	if (MINOR(inode->i_rdev)!=0) {
+		MSG("error minor number");
+		return -ENODEV;
+	}
 	MSG("cdata_open");
 	return 0;
 }
@@ -45,7 +66,8 @@ static int cdata_write(struct file *filp, const char *buffer, size_t size, loff_
 }
 
 
-static struct file_operations cdata_fops = {	
+static struct file_operations cdata_fops = {
+	owner:		THIS_MODULE,	
 	open:		cdata_open,
 	release:	cdata_close,
 	write:		cdata_write,
