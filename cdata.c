@@ -34,16 +34,13 @@
 static int cdata_open(struct inode *inode, struct file *filp)
 {
 	int i;
-	/*for (i=0; i<500000; i++) {
-		//do nothing
-		//
-	}*/
+	int minor;
 
-	if (MINOR(inode->i_rdev)!=0) {
-		MSG("error minor number");
-		return -ENODEV;
-	}
-	MSG("cdata_open");
+	printk(KERN_INFO "CDATA: in open\n");
+
+	minor = MINOR(inode->i_rdev);
+	printk(KERN_INFO "CDATA: minor = %d\n", minor);
+
 	return 0;
 }
 
@@ -65,24 +62,25 @@ static int cdata_write(struct file *filp, const char *buffer, size_t size, loff_
 	return 0;
 }
 
-static int cdata_ioctl(struct inode* inode, struct file* file, unsigned int cmd, unsigned long arg) {
+int cdata_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
+{
 	return 0;
 }
 
 
 static struct file_operations cdata_fops = {
-	owner:		THIS_MODULE,	
-	open:		cdata_open,
-	release:	cdata_close,
-	write:		cdata_write,
-	read:		cdata_read,
-	ioctl:		cdata_ioctl,
+	owner: THIS_MODULE,
+	open: cdata_open,
+	release: cdata_close,
+	read: cdata_read,
+	write: cdata_write,
+	ioctl: cdata_ioctl,
 };
 
 int cdata_init_module(void)
 {
-	if (register_chrdev(DEV_MAJOR, DEV_NAME, &cdata_fops) < 0) {
-		//error
+	if (register_chrdev(121, "cdata", &cdata_fops) < 0) {
+		printk(KERN_INFO "CDATA: can't register driver\n");
 		return -1;
 	}
 	return 0;

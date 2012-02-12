@@ -5,6 +5,7 @@
 rm test
 gcc -o test test.c
 
-./uptime.sh& 
-time sudo ./test
-exit 0
+#./uptime.sh& 
+#time sudo ./test
+sudo ./test
+#exit 0

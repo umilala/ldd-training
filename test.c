@@ -10,12 +10,16 @@
 #include <sys/mman.h>
 
 
-//#define MSG(m...) printk(KERN_INFO "TEST: " m "\n")
-
 int main(void) {
-	int fd;
-//	MSG("run mytest (start)....");
+	int fd, fd3;
 	fd = open("/dev/cdata", O_RDWR);
-//	MSG("run mytest (end)....");
+	if (fd!=0) {
+		printf("test: fd ERROR\n");
+	}
 	close(fd);
+	fd3 = open("/dev/cdata3", O_RDWR);
+	if (fd3!=0) {
+		printf("test: fd ERROR\n");
+	}
+	close(fd3);
 }
