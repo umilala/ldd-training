@@ -1,0 +1,92 @@
+1. unzip kernel
+
+	tar jxvf kernel-jk2410-rmk7-pxa1-mz5.tar.bz2
+
+2. unzip toolchain to root (kernel toolschain)
+
+	cd /
+	sudo tar zxvf /disk0/moko_20120211/moko365-ldd-pack/arm-linux-toolchains.tgz
+
+
+3. enter the kernel path
+
+	cd /disk0/moko_20120211/moko365-ldd-pack/kernel-jk2410
+
+4. check the Makefile (in kernel-jk2410)
+
+ARCH := arm
+CROSS_COMPILE 	= /usr/local/arm/2.95.3/bin/arm-linux-
+
+5. make menuconfig
+Character devices
+  │ │[ ] Jollen-Kit! Pro. GPIO buttons support                            │ │  
+  │ │[ ] Jollen-Kit! Pro. LEDs support  
+
+
+6. make dep
+7. make Image -j8 (default)
+	or 
+	   make zImage (zip image)
+	or 
+	   make bImage (if > 4MB)
+	or
+	   make bzImage (if > 4MB and zip image)
+
+
+8. check out file
+	/disk0/moko_20120211/moko365-ldd-pack/kernel-jk2410/vmlinux (elf format)
+	/disk0/moko_20120211/moko365-ldd-pack/kernel-jk2410/arch/arm/boot/Image (target image)
+
+
+9. tar zxvf jk2410-codesuite-read-only.tar.gz (emulator)
+
+/disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/rootfs/qemu-jk2410-prebuilt (emulator)
+
+
+10. 
+Ignore this part....
+edit /disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/rootfs/qemu-jk2410-prebuilt/run.sh 
+
+org:
+arm-softmmu/qemu-system-arm -M neo -m 130 -mtdblock jk2410/jk2410-flash.image -kernel jk2410/uimage.img -initrd jk2410/urootfs-lcd.img -usb -show-cursor -serial stdio -s
+
+#arm-softmmu/qemu-system-arm -M neo -m 130 -mtdblock jk2410/jk2410-flash.image -kernel /disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/rootfs/qemu-jk2410-prebuilt/uimage.img -initrd jk2410/urootfs-lcd.img -usb -show-cursor -serial stdio -s
+
+
+JK2410: CPU FCLK = 200000000
+JK2410: CPU UCLK = 48000000
+JK2410: CPU HCLK = 100000000
+
+JK2410: CPU PCLK = 50000000
+jollen.org # ls
+mtdids not defined, no default present
+jollen.org # 
+
+
+11. QEMU reference:
+	http://wiki.qemu.org/Main_page
+
+12. create rootfs system (using rootfs toolchain)
+
+	cd /disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only
+
+	a. unzip toolschain
+		sudo tar zxvf /disk0/moko_20120211/moko365-ldd-pack/arm-9tdmi-linux-gnu.tar.gz
+		output will be 
+			/opt/crosstool/gcc-3.4.1-glibc-2.3.3/arm-9tdmi-linux
+	b. generate rootfs
+		sudo make rootfs	(for creating /disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/rootfs/urootfs-lcd.img)
+
+12. run emulator
+/disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/rootfs/qemu-jk2410-prebuilt/run.sh 
+
+jollen.org # 
+set bootargs root=/dev/ram0 rw console=ttyS0,115200 mem=64M ramdisk=16384; bootm 30f00000 32000000
+
+
+
+
+
+
+
+

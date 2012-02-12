@@ -21,16 +21,6 @@
 #define MSG(m...) printk(KERN_INFO "CDATA: " m "\n");
 
 
-/* TEST_MODE 
- * 0: LOOP_ONLY
- * 1: SCHEDULE
- * 2: SCHEDULE_UNINTERRUPTIBLE
- * 3:
- */
-
-#define TEST_MODE o
-
-
 static int cdata_open(struct inode *inode, struct file *filp)
 {
 	int i;
@@ -58,15 +48,28 @@ static int cdata_read(struct file *filp, char *buffer, size_t size, loff_t *offs
 
 static int cdata_write(struct file *filp, const char *buffer, size_t size, loff_t *offset)
 {
-	MSG("cdata_write");
+	MSG("cdata_write(BEGIN)");
+	int i;
+	for (i=0; i<50000000; i++) {
+		//schedule();
+	}
+	
+
+	MSG("cdata_write(END)");
 	return 0;
 }
 
 int cdata_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
 {
+	MSG("cdata_ioctl");
 	return 0;
 }
 
+
+int cdata_flush(struct file * filp) {
+	MSG("cdata_flush");
+	return 0;
+}
 
 static struct file_operations cdata_fops = {
 	owner: THIS_MODULE,
@@ -75,6 +78,7 @@ static struct file_operations cdata_fops = {
 	read: cdata_read,
 	write: cdata_write,
 	ioctl: cdata_ioctl,
+	flush: cdata_flush,
 };
 
 int cdata_init_module(void)
