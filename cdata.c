@@ -23,10 +23,10 @@
 
 static int cdata_open(struct inode *inode, struct file *filp)
 {
-	int i;
+//	int i;
 	int minor;
 
-	printk(KERN_INFO "CDATA: in open\n");
+	printk(KERN_INFO "CDATA: a in open\n");
 
 	minor = MINOR(inode->i_rdev);
 	printk(KERN_INFO "CDATA: minor = %d\n", minor);
@@ -48,25 +48,26 @@ static int cdata_read(struct file *filp, char *buffer, size_t size, loff_t *offs
 
 static int cdata_write(struct file *filp, const char *buffer, size_t size, loff_t *offset)
 {
-	MSG("cdata_write(BEGIN)");
 	int i;
-	for (i=0; i<50000000; i++) {
-		//schedule();
+	MSG("cdata_write(BEGIN)");
+	/*for (i=0; i<50000000; i++)*/while(1) {
+		current->state = TASK_INTERRUPTIBLE;
+		//current->state = TASK_UNINTERRUPTIBLE:
+		schedule();
 	}
-	
 
 	MSG("cdata_write(END)");
 	return 0;
 }
 
-int cdata_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
+static int cdata_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	MSG("cdata_ioctl");
 	return 0;
 }
 
 
-int cdata_flush(struct file * filp) {
+static int cdata_flush(struct file * filp) {
 	MSG("cdata_flush");
 	return 0;
 }
@@ -81,16 +82,28 @@ static struct file_operations cdata_fops = {
 	flush: cdata_flush,
 };
 
-int cdata_init_module(void)
+static int cdata_init_module(void)
 {
+
+	unsigned long *fd;
+	int i;
+	fd = ioremap(0x33f00000, 320*240*4);
+	for (i=0; i< 320*240; i++) {
+		writel(0x00ff0000, fd++);	//
+	}
+
+
 	if (register_chrdev(121, "cdata", &cdata_fops) < 0) {
 		printk(KERN_INFO "CDATA: can't register driver\n");
 		return -1;
 	}
+
+	printk(KERN_INFO "CDATA, cdata_init_module");
+
 	return 0;
 }
 
-void cdata_cleanup_module(void)
+static void cdata_cleanup_module(void)
 {
 	unregister_chrdev(DEV_MAJOR, DEV_NAME);
 }

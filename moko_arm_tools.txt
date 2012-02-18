@@ -84,9 +84,70 @@ jollen.org #
 set bootargs root=/dev/ram0 rw console=ttyS0,115200 mem=64M ramdisk=16384; bootm 30f00000 32000000
 
 
+13. gen uboot image (save it as gen_uimage.sh)
+	a. copy mkimage
+		copy mkimage to your .../disk0/moko_20120211/moko365-ldd-pack/kernel-jk2410 (from /disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/rootfs)
+	b. create uboot image
+		cd /disk0/moko_20120211/moko365-ldd-pack/kernel-jk2410
+		./mkimage -A arm -O linux -T kernel -C none -a 30008000 -e 30008000 -d arch/arm/boot/Image uimage.img
+
+	c. copy the image into your emulator
+		cp uimage.img /disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/rootfs/qemu-jk2410-prebuilt/jk2410/
+
+-->
+	RUN emulator:
+		/disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/rootfs/qemu-jk2410-prebuilt/run.sh
+	GEN IMAGE
+		/disk0/moko_20120211/moko365-ldd-pack/kernel-jk2410/gen_uimage.sh
+
+14. copy cdata into kernel (build cdata into kernel/drivers/char)
+	then gedit Makefile
+	obj-y += cdata.o
+
+
+check symbol in System.map
+
+15. for test program on the rootfs
+a. copy test.c into /disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/
+	or 	ln -s yourfolder/test.c
+b. edit /disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/Makefile
+	$(CC) -o test test.c	
+c. edit /disk0/moko_20120211/moko365-ldd-pack/jk2410-codesuite-read-only/rootfs/Makefile
+	@cp ../test rootfs/bin/
+d. sudo make rootfs
+
+16. test on the emulator
+a. mknod /dev/cdata c 121 0
 
 
 
+20120218
+
+1. open emulator (240x320)
+fill screen with red color without boot kernel (mw.l -->write long byte)
+mw.l 0x33f00000 0x00ff0000 10000
+
+2. write clear screen on cdata_init_module
+	but no effect
+3. try to disable driver
+	make menuconfig
+		disable console/framebuffer/Support fro frame buffer devices
+	but screen is wrong(with ramdom color)
 
 
+4. change the ram config range in bootargs (64M -> 60, avoid overwrite framebuffer range)
+set bootargs root=/dev/ram0 rw console=ttyS0,115200 mem=60M ramdisk=16384; bootm 30f00000 32000000
+
+5. 
+static int cdata_init_module(void)
+{
+
+	unsigned long *fd;
+	int i;
+	fd = ioremap(0x33f00000, 320*240*4);
+	for (i=0; i< 320*240; i++) {
+		writel(0x00ff0000, fd++);	//
+	}
+
+6. the screen should be red 
 
