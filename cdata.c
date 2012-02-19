@@ -85,7 +85,7 @@ void flush_lcd(unsigned long priv)
 		if (offset >= LCD_SIZE)
 			offset = 0;
 		// Lab
-		for (j = 0; j < 100000; j++);
+		//for (j = 0; j < 100000; j++);
 	}
 
 	cdata->index = 0;
@@ -128,9 +128,9 @@ static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff
 	for (i = 0; i < size; i++) {
 		if (index >= BUF_SIZE) {
 
-			//every 5 secs trigger flush, but we must in running mode(second timer)
+			//every 1 secs trigger flush, but we must in running mode(second timer)
 			cdata->index = index;
-			timer->expires = jiffies + 5*HZ;	//5 secs
+			timer->expires = jiffies + 1*HZ;	//5 secs
 			timer->function = flush_lcd;
 			timer->data = (unsigned long)cdata;
 			add_timer(timer);
