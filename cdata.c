@@ -128,12 +128,14 @@ static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff
 	for (i = 0; i < size; i++) {
 		if (index >= BUF_SIZE) {
 
+			//every 5 secs trigger flush, but we must in running mode(second timer)
 			cdata->index = index;
 			timer->expires = jiffies + 5*HZ;	//5 secs
 			timer->function = flush_lcd;
 			timer->data = (unsigned long)cdata;
 			add_timer(timer);
 
+			//for wakup, if not set, we let kernel driver in INTERRUPTIBLE mode
 			sched->expires = jiffies + 10;		//0.1 secs
 			sched->function = cdata_wake_up;
 			sched->data = (unsigned long)cdata;
