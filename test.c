@@ -18,10 +18,18 @@ int main(void)
 	char pix_blue[4] = {0xff, 0x00, 0x00, 0xff};
 
 	i = 10000;
-	fd = open("/dev/cdata", O_RDWR);
-	//ioctl(fd, CDATA_CLEAR, &i);
 
-	pid = fork();
+	//pid = fork();
+
+	fd = open("/dev/cdata", O_RDWR);
+
+	mmap(0, 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	sleep(60);//for checking the mmap, cat /proc/xxx/maps
+
+
+	//ioctl(fd, CDATA_CLEAR, &i);
+	//pid = fork();
+/*
 	if (pid ==0) {
 		while(1) {
 			write(fd, pix_green, 4);
@@ -30,6 +38,11 @@ int main(void)
 		while(1) {
 			write(fd, pix_blue, 4);
 		}		
-	}
+	}*/
+
+/*	while(1) {
+		write(fd, pix_blue, 4);
+	}	*/
+
 	close(fd);
 }

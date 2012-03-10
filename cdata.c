@@ -16,7 +16,8 @@
 #include <asm/uaccess.h>
 #include "cdata.h"
 
-#define BUF_SIZE (12800)
+//#define BUF_SIZE (12800)
+#define BUF_SIZE (16384)
 #define LCD_SIZE (320*240*4)
 
 struct cdata_t {
@@ -82,8 +83,9 @@ void flush_lcd(unsigned long priv)
 	for (i = 0; i < index; i++) {
 		writeb(pixel[i], fb+offset);
 		offset++;
-		if (offset >= LCD_SIZE)
+		if (offset >= LCD_SIZE) {
 			offset = 0;
+		}
 		// Lab
 		//for (j = 0; j < 100000; j++);
 	}
@@ -97,7 +99,7 @@ void cdata_wake_up(unsigned long priv)
 	struct cdata_t *cdata = (struct cdata *)priv;
 	struct timer_list *sched;
 	wait_queue_head_t *wq;
-printk(KERN_INFO "CDATA: cdata_wake_up\n");
+	printk(KERN_INFO "CDATA: cdata_wake_up, pid: %d\n", current->pid);
 	sched = &cdata->sched_timer;
 	wq = &cdata->wq;
 
@@ -167,6 +169,13 @@ repeat:
 	return 0;
 }
 
+static int cdata_mmap(struct file *filp, struct vm_area_struct* vma) {
+	printk(KERN_INFO "CDATA: cdata_mmap\n");
+	printk(KERN_INFO "CDATA: cdata_mmap, start=%08x\n", vma->vm_start);
+	printk(KERN_INFO "CDATA: cdata_mmap, end=%08x\n", vma->vm_end);
+	return 0;
+}
+
 static int cdata_close(struct inode *inode, struct file *filp)
 {
 	struct cdata_t *cdata = (struct cdata *)filp->private_data;
@@ -184,13 +193,15 @@ static int cdata_ioctl(struct inode *inode, struct file *filp,
 unsigned int cmd, unsigned long arg)
 {
 	struct cdata_t *cdata = (struct cdata *)filp->private_data;
-	int n;
+	int n =0;
 	unsigned long *fb;
 	int i;
 
 	switch (cmd) {
-		case CDATA_CLEAR:
-			n = *((int *)arg); // FIXME: dirty
+		case CDATA_CLEAR: {
+			copy_from_user(&n, arg, sizeof(n));
+			//get_user(&n, arg);
+			//n = *((int *)arg); // FIXME: dirty
 			printk(KERN_INFO "CDATA_CLEAR: %d pixel\n", n);
 
 			// FIXME: Lock
@@ -198,8 +209,10 @@ unsigned int cmd, unsigned long arg)
 			// FIXME: unlock
 			for (i = 0; i < n; i++)
 				writel(0x00ff00ff, fb++);
+		}
 		break;
 	}
+	return -ENOTTY;
 }
 
 static struct file_operations cdata_fops = {
@@ -209,6 +222,7 @@ static struct file_operations cdata_fops = {
 	read: cdata_read,
 	write: cdata_write,
 	ioctl: cdata_ioctl,
+	mmap: cdata_mmap,
 
 };
 
