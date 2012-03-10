@@ -181,7 +181,15 @@ static int cdata_mmap(struct file *filp, struct vm_area_struct* vma) {
 	from = vma->vm_start;
 	to = 0x33f00000;
 	size = vma->vm_end - vma->vm_start;
-	remap_page_range(from, to, size, PAGE_SHARED);	
+
+	while (size) {
+		remap_page_range(from, to, PAGE_SIZE, PAGE_SHARED);
+
+		from += PAGE_SIZE;
+		to += PAGE_SIZE;
+		size -= PAGE_SIZE;
+	}
+	//remap_page_range(from, to, size, PAGE_SHARED);	
 
 	return 0;
 }
