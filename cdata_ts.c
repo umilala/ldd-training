@@ -22,10 +22,23 @@ DECLARE_TASKLET(my_tasklet, cdata_bh, 0);
 static void cdata_ts_handler(int irqflags, void* priv, struct pt_regs* reg) {
 	printk(KERN_INFO "cdata_ts_handler\n");
 	tasklet_schedule(&my_tasklet);
+	/* FIXME: read (x, y) from ADC */
 }
 
 static void cdata_bh(unsigned long priv) {
 	printk(KERN_INFO "cdata_ts: down...\n");
+
+
+}
+
+struct input_dev ts_input;
+int ts_input_open(struct input_dev *dev) {
+	printk(KERN_INFO "ts_input_open\n");
+	return 0;
+}
+
+void ts_input_close(struct input_dev* dev) {
+	printk(KERN_INFO, "ts_input_close\n");
 }
 
 static int cdata_ts_open(struct inode *inode, struct file *filp)
@@ -55,10 +68,15 @@ static int cdata_ts_open(struct inode *inode, struct file *filp)
 	}
 
 
+	 /** handling input device ***/
+	ts_input.open = ts_input_open;
+	ts_input.close = ts_input_close;
+
+	input_register_device(&ts_input);
+
 	printk(KERN_INFO "cdata_ts_open\n");
 	return 0;
 }
-
 
 static ssize_t cdata_ts_read(struct file *filp, char *buf, size_t size, loff_t *off)
 {
@@ -99,6 +117,8 @@ static struct miscdevice cdata_ts_misc = {
 	
 };
 
+
+
 int cdata_ts_init_module(void)
 {
 
@@ -113,6 +133,7 @@ int cdata_ts_init_module(void)
 void cdata_ts_cleanup_module(void)
 {
 	misc_deregister(&cdata_ts_misc);
+
 }
 
 module_init(cdata_ts_init_module);
