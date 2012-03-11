@@ -16,8 +16,16 @@
 #include <asm/uaccess.h>
 //#include "cdata_ts.h"
 
+static void cdata_bh(unsigned long);
+DECLARE_TASKLET(my_tasklet, cdata_bh, 0);
+
 static void cdata_ts_handler(int irqflags, void* priv, struct pt_regs* reg) {
 	printk(KERN_INFO "cdata_ts_handler\n");
+	tasklet_schedule(&my_tasklet);
+}
+
+static void cdata_bh(unsigned long priv) {
+	printk(KERN_INFO "cdata_ts: down...\n");
 }
 
 static int cdata_ts_open(struct inode *inode, struct file *filp)
