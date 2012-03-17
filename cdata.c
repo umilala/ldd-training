@@ -34,6 +34,7 @@ struct cdata_t {
 	//DECLARE_WAIT_QUEUE
 	wait_queue_head_t	wq;
 	struct semaphore	sem;
+	spinlock_t		lock;
 
 };
 
@@ -61,6 +62,7 @@ static int cdata_open(struct inode *inode, struct file *filp)
 	init_waitqueue_head(&cdata->wq);
 
 	sem_init(&cdata->sem, 1);
+	spin_lock_init(&cdata->lock);
 
 	filp->private_data = (void *)cdata;
 
@@ -81,10 +83,12 @@ void flush_lcd(unsigned long priv)
 	int i;
 	int j;
 
+	spin_lock(&cdata->lock);
 	fb = (unsigned char *)cdata->fb;
 	pixel = cdata->buf;
 	index = cdata->index;
 	offset = cdata->offset;
+	spin_unlock(&cdata->lock);
 
 	for (i = 0; i < index; i++) {
 		writeb(pixel[i], fb+offset);
@@ -125,12 +129,15 @@ static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff
 	unsigned int i;
         wait_queue_head_t *wq;
 	wait_queue_t wait;
+	unsigned long flags;
 
 	/*  controlling the resources, keep avoiding concurrency */
 	down_interruptible(&cdata->sem);
-	//spin_lock_irqsave();
+	spin_lock_irqsave(&cdata->lock, flags);	//due to spin_lock on flush_lcd...
 	pixel = cdata->buf;
 	index = cdata->index;
+	spin_unlock_irqsave(&cdata->lock, flags);
+
 	timer = &cdata->flush_timer;
 	sched = &cdata->sched_timer;
 	wq = &cdata->wq;
@@ -142,7 +149,10 @@ static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff
 		if (index >= BUF_SIZE) {
 
 			//every 1 secs trigger flush, but we must in running mode(second timer)
+			down_interruptible(&cdata->sem);
 			cdata->index = index;
+			up(&cdata->sem);
+
 			timer->expires = jiffies + 1*HZ;	//5 secs
 			timer->function = flush_lcd;
 			timer->data = (unsigned long)cdata;
@@ -161,8 +171,10 @@ static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff
 repeat:
 			current->state = TASK_INTERRUPTIBLE;
 			schedule();
-		 
+
+			down_interruptible(&cdata->sem);
 			index = cdata->index;
+			up(&cdata->sem);
 
 			if (index != 0)
 				goto repeat;
