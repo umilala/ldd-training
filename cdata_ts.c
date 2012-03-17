@@ -29,7 +29,7 @@ struct cdata_ts {
 
 
 
-static void cdata_ts_handler(int irqflags, void* priv, struct pt_regs* reg) {
+static void cdata_ts_handler(int irqflags, void* priv, struct pt_regs* reg) {/*bottom up*/
 	struct cdata_ts *cdata = (struct cdata_ts *)priv;
 
 	printk(KERN_INFO "cdata_ts_handler\n");
@@ -45,7 +45,7 @@ static void cdata_ts_handler(int irqflags, void* priv, struct pt_regs* reg) {
 	//y = 100;
 }
 
-static void cdata_bh(unsigned long priv) {
+static void cdata_bh(unsigned long priv) {/*bottom down*/
 	struct cdata_ts *cdata = (struct cdata_ts *)priv;
 	struct input_dev *dev = &cdata->ts_input;
 

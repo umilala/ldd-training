@@ -12,9 +12,12 @@
 #include <linux/irq.h>
 #include <linux/miscdevice.h>
 #include <linux/input.h>
+#include <asm/semaphore.h>
 #include <asm/io.h>
 #include <asm/uaccess.h>
+
 #include "cdata.h"
+
 
 //#define BUF_SIZE (12800)
 #define BUF_SIZE (16384)
@@ -30,6 +33,7 @@ struct cdata_t {
 
 	//DECLARE_WAIT_QUEUE
 	wait_queue_head_t	wq;
+	struct semaphore	sem;
 
 };
 
@@ -55,6 +59,8 @@ static int cdata_open(struct inode *inode, struct file *filp)
 	init_timer(&cdata->sched_timer);
 
 	init_waitqueue_head(&cdata->wq);
+
+	sem_init(&cdata->sem, 1);
 
 	filp->private_data = (void *)cdata;
 
@@ -120,12 +126,17 @@ static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff
         wait_queue_head_t *wq;
 	wait_queue_t wait;
 
-
+	/*  controlling the resources, keep avoiding concurrency */
+	down_interruptible(&cdata->sem);
+	//spin_lock_irqsave();
 	pixel = cdata->buf;
 	index = cdata->index;
 	timer = &cdata->flush_timer;
 	sched = &cdata->sched_timer;
 	wq = &cdata->wq;
+	/*  */
+	//spin_unlock_irqsave();
+	up(&cdata->sem);
 
 	for (i = 0; i < size; i++) {
 		if (index >= BUF_SIZE) {
