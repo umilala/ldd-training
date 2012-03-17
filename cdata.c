@@ -13,6 +13,7 @@
 #include <linux/miscdevice.h>
 #include <linux/input.h>
 #include <asm/semaphore.h>
+//#include <linux/mutex.h>
 #include <asm/io.h>
 #include <asm/uaccess.h>
 
@@ -35,6 +36,7 @@ struct cdata_t {
 	wait_queue_head_t	wq;
 	struct semaphore	sem;
 	spinlock_t		lock;
+	//DEFINE_MUTEX(mutex);	/* for 2.6*/
 
 };
 
@@ -62,6 +64,7 @@ static int cdata_open(struct inode *inode, struct file *filp)
 	init_waitqueue_head(&cdata->wq);
 
 	sem_init(&cdata->sem, 1);
+	//muxtex_init(&cdata->mutex);
 	spin_lock_init(&cdata->lock);
 
 	filp->private_data = (void *)cdata;
@@ -134,6 +137,7 @@ static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff
 
 	/*  controlling the resources, keep avoiding concurrency */
 	down_interruptible(&cdata->sem);
+	//mutex_lock(&cdata->mutex);
 	spin_lock_irqsave(&cdata->lock, flags);	//due to spin_lock on flush_lcd...
 	pixel = cdata->buf;
 	index = cdata->index;
@@ -143,8 +147,9 @@ static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff
 	sched = &cdata->sched_timer;
 	wq = &cdata->wq;
 	/*  */
-	//spin_unlock_irqsave();
+	
 	up(&cdata->sem);
+	//mutex_unlock(&cdata->mutex);
 
 	for (i = 0; i < size; i++) {
 		if (index >= BUF_SIZE) {
