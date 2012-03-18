@@ -141,7 +141,7 @@ static ssize_t cdata_write(struct file *filp, const char *buf, size_t size, loff
 	spin_lock_irqsave(&cdata->lock, flags);	//due to spin_lock on flush_lcd...
 	pixel = cdata->buf;
 	index = cdata->index;
-	spin_unlock_irqsave(&cdata->lock, flags);
+	spin_unlock_irqrestore(&cdata->lock, flags);
 
 	timer = &cdata->flush_timer;
 	sched = &cdata->sched_timer;
@@ -213,6 +213,12 @@ static int cdata_mmap(struct file *filp, struct vm_area_struct* vma) {
 
 	while (size) {
 		remap_page_range(from, to, PAGE_SIZE, PAGE_SHARED);
+
+/*		for kernel v2.6, change remap_page_range() to remap_pfn_range()
+		remap_pfn_range(vma, mva->vmstart, __pa(kvirt) >> PAGE_SHIFT, 
+				PAGE_SIZE, vma->vm_page_prot);
+
+*/
 
 		from += PAGE_SIZE;
 		to += PAGE_SIZE;
